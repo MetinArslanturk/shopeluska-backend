@@ -119,11 +119,14 @@ app.get('/api/checkLogin', (req, res) => {
     User.findByToken(token).then((user) => {
         if (!user) {
             res.status(200).send({caut: false});
+            return;
         }
 
         res.status(200).send({caut: true, isA: user.isAdmin, name: user.name, id: user._id});
+        return;
     }).catch((e) => {
         res.status(200).send({caut: false});
+        return;
     });
 });
 
