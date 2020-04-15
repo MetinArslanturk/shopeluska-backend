@@ -82,6 +82,19 @@ app.get('/api/users/:id', authenticate, (req, res) => {
     });
 });
 
+app.post('/api/users/updateMyProfile', authenticate, (req, res) => {
+    const userId = req.user._id;
+    User.findOneAndUpdate({
+        _id: userId
+      },{
+        ...(req.body.email && {email: req.body.email}),
+        ...(req.body.password && {password: req.body.password}),
+        ...(req.body.username && {name: req.body.username})
+      }, {new: true}).then((usr) => {
+        res.send(usr);
+      });
+});
+
 
 
 app.post('/api/login', (req, res) => {
@@ -90,7 +103,7 @@ app.post('/api/login', (req, res) => {
     User.findByCredentials(body.email, body.password).then((user) => {
         return user.generateAuthToken().then((token) => {
             res.cookie('sessionCid', token, { maxAge: 86400000, httpOnly: true });
-            res.status(200).send({ isA: user.isAdmin, name: user.name, id: user._id });
+            res.status(200).send({ isA: user.isAdmin, name: user.name, _id: user._id, email: user.email });
         });
     }).catch((e) => {
         res.status(403).send();
@@ -121,8 +134,7 @@ app.get('/api/checkLogin', (req, res) => {
             res.status(200).send({caut: false});
             return;
         }
-
-        res.status(200).send({caut: true, isA: user.isAdmin, name: user.name, id: user._id});
+        res.status(200).send({caut: true, isA: user.isAdmin, name: user.name, _id: user._id, email: user.email});
         return;
     }).catch((e) => {
         res.status(200).send({caut: false});
