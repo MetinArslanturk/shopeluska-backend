@@ -37,11 +37,19 @@ var UserSchema = new mongoose.Schema({
   }
 });
 
+UserSchema.virtual('key').get(function(){
+  return this._id.toHexString();
+});
+
+
+UserSchema.set('toObject', {
+  virtuals: true
+});
+
 UserSchema.methods.toJSON = function () {
   var user = this;
   var userObject = user.toObject();
-
-  return _.pick(userObject, ['_id', 'name', 'email', 'isAdmin']);
+  return _.pick(userObject, ['_id', 'name', 'email', 'isAdmin', 'key']);
 };
 
 
