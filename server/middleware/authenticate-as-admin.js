@@ -1,6 +1,6 @@
 const {User} = require('../models/user');
 
-const authenticate = (req, res, next) => {
+const authenticateAsAdmin = (req, res, next) => {
   var token = null;
   if(req.cookies && req.cookies.sessionCid){
    token = req.cookies.sessionCid;
@@ -14,6 +14,10 @@ const authenticate = (req, res, next) => {
       return Promise.reject();
     }
 
+    if (!user.isAdmin) {
+      return Promise.reject();
+    }
+
     req.user = user;
     next();
   }).catch((e) => {
@@ -22,4 +26,4 @@ const authenticate = (req, res, next) => {
 
 };
 
-module.exports = {authenticate};
+module.exports = {authenticateAsAdmin};
