@@ -17,13 +17,15 @@ const { authenticateAsAdmin } = require('./middleware/authenticate-as-admin');
 const app = express();
 const port = 8081;
 
+const apiBase = '/shopeluska-api/'
+
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 /* Will be removed start */
 
-app.get('/api/addadmin', (req, res) => {
+app.get(apiBase + 'addadmin', (req, res) => {
     const user = new User({
         email: 'admin@test.com',
         password: '123456',
@@ -38,7 +40,7 @@ app.get('/api/addadmin', (req, res) => {
     });
 });
 
-app.get('/api/addtest', (req, res) => {
+app.get(apiBase + 'addtest', (req, res) => {
     const user = new User({
         email: 'testn@test.com',
         password: '123456',
@@ -53,7 +55,7 @@ app.get('/api/addtest', (req, res) => {
     });
 });
 
-app.get('/api/getinfo', (req, res) => {
+app.get(apiBase + 'getinfo', (req, res) => {
     console.log('here');
     res.send('sdfs');
 
@@ -69,7 +71,7 @@ app.get('/api/getinfo', (req, res) => {
 
 ///////////////////////////////////////////////////////////////////////
 
-app.post('/api/users', authenticate, (req, res) => {
+app.post(apiBase + 'users', authenticateAsAdmin, (req, res) => {
     const user = new User({
         email: req.body.email,
         password: req.body.password,
@@ -86,7 +88,7 @@ app.post('/api/users', authenticate, (req, res) => {
 
 
 
-app.get('/api/users/:id', authenticate, (req, res) => {
+app.get(apiBase + 'users/:id', authenticateAsAdmin, (req, res) => {
     User.findOne({
         _id: req.params.id
     }).then((user) => {
@@ -100,7 +102,7 @@ app.get('/api/users/:id', authenticate, (req, res) => {
     });
 });
 
-app.post('/api/users/updateMyProfile', authenticate, (req, res) => {
+app.post(apiBase + 'users/updateMyProfile', authenticate, (req, res) => {
     const userId = req.user._id;
     User.findOneAndUpdate({
         _id: userId
@@ -119,7 +121,7 @@ app.post('/api/users/updateMyProfile', authenticate, (req, res) => {
 
 
 
-app.post('/api/login', (req, res) => {
+app.post(apiBase + 'login', (req, res) => {
     const body = _.pick(req.body, ['email', 'password']);
 
     User.findByCredentials(body.email, body.password).then((user) => {
@@ -134,7 +136,7 @@ app.post('/api/login', (req, res) => {
 
 
 
-app.get('/api/logout', (req, res) => {
+app.get(apiBase + 'logout', (req, res) => {
     res.clearCookie('sessionCid');
     res.status(200).send();
 });
@@ -142,7 +144,7 @@ app.get('/api/logout', (req, res) => {
 
 
 
-app.get('/api/checkLogin', (req, res) => {
+app.get(apiBase + 'checkLogin', (req, res) => {
     let token = null;
     if (req.cookies && req.cookies.sessionCid) {
         token = req.cookies.sessionCid;
@@ -172,7 +174,7 @@ app.get('/api/checkLogin', (req, res) => {
 ///////////////////////////////////////////////////////////////////////
 
 
-app.post('/api/products', authenticateAsAdmin, (req, res) => {
+app.post(apiBase + 'products', authenticateAsAdmin, (req, res) => {
     const product = new Product({
         name: req.body.name,
         price: req.body.price,
@@ -190,7 +192,7 @@ app.post('/api/products', authenticateAsAdmin, (req, res) => {
     });
 });
 
-app.get('/api/products', (req, res) => {
+app.get(apiBase + 'products', (req, res) => {
     Product.find().then((products) => {
         res.send(products);
     }, (e) => {
@@ -198,7 +200,7 @@ app.get('/api/products', (req, res) => {
     });
 });
 
-app.patch('/api/products', authenticateAsAdmin, (req, res) => {
+app.patch(apiBase + 'products', authenticateAsAdmin, (req, res) => {
     const id = req.body._id;
     Product.findOneAndUpdate({_id: id}, {
         ...(req.body.name && { name: req.body.name }),
@@ -220,7 +222,7 @@ app.patch('/api/products', authenticateAsAdmin, (req, res) => {
     })
 });
 
-app.delete('/api/products/:id', authenticateAsAdmin, (req, res) => {
+app.delete(apiBase + 'products/:id', authenticateAsAdmin, (req, res) => {
     const id = req.params.id;
     Product.findOneAndDelete({ _id: id }).then((doc) => {
         if (doc) {
