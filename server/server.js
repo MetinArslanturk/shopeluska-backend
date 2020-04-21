@@ -2,8 +2,6 @@ require('./config/config');
 
 const _ = require('lodash');
 const express = require('express');
-const axios = require('axios');
-const os = require('os');
 const cookieParser = require('cookie-parser');
 
 const bodyParser = require('body-parser');
@@ -92,7 +90,11 @@ app.get('/api/users/:id', authenticate, (req, res) => {
     User.findOne({
         _id: req.params.id
     }).then((user) => {
-        res.send(user);
+        if (user) {
+            res.send(user);
+        } else {
+            res.status(400).send('Could not find the user.');
+        } 
     }, (err) => {
         res.status(500).send(err);
     });
@@ -107,7 +109,11 @@ app.post('/api/users/updateMyProfile', authenticate, (req, res) => {
         ...(req.body.password && { password: req.body.password }),
         ...(req.body.username && { name: req.body.username })
     }, { new: true }).then((usr) => {
-        res.send(usr);
+        if (usr) {
+            res.send(usr);
+        } else {
+            res.status(400).send('Could not find the user.');
+        } 
     });
 });
 
@@ -184,7 +190,7 @@ app.post('/api/products', authenticateAsAdmin, (req, res) => {
     });
 });
 
-app.get('/api/products', authenticate, (req, res) => {
+app.get('/api/products', (req, res) => {
     Product.find().then((products) => {
         res.send(products);
     }, (e) => {
@@ -193,7 +199,7 @@ app.get('/api/products', authenticate, (req, res) => {
 });
 
 app.patch('/api/products', authenticateAsAdmin, (req, res) => {
-    const id = req.body.id;
+    const id = req.body._id;
     Product.findOneAndUpdate({_id: id}, {
         ...(req.body.name && { name: req.body.name }),
         ...(req.body.description && { description: req.body.description }),
@@ -202,14 +208,26 @@ app.patch('/api/products', authenticateAsAdmin, (req, res) => {
         ...(req.body.category && { category: req.body.category }),
         ...(req.body.price && { price: req.body.price })
     }, { new: true }).then((prd) => {
-        res.send(prd);
+        if (prd) {
+            res.send(prd);
+        } else {
+            res.status(400).send(e);
+        }
+    }, (e) => {
+        res.status(400).send(e);
+    }).catch(err => {
+        res.status(400).send(err);
     })
 });
 
 app.delete('/api/products/:id', authenticateAsAdmin, (req, res) => {
     const id = req.params.id;
-    Product.findOneAndDelete({ _id: id }).then((suc) => {
-        res.send();
+    Product.findOneAndDelete({ _id: id }).then((doc) => {
+        if (doc) {
+            res.send();
+        } else {
+            res.status(400).send('Could not find product');
+        }
     }, (err) => {
         res.status(500).send(err);
     });
