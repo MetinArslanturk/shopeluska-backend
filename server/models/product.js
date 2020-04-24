@@ -23,6 +23,10 @@ var ProductSchema = new mongoose.Schema({
   category: {
     type: String
   },
+  createdAt: {
+    type: Number,
+    default: Date.now()
+  },
   description: {
     type: String
   }
@@ -41,7 +45,7 @@ ProductSchema.set('toObject', {
 ProductSchema.methods.toJSON = function () {
   const product = this;
   const productObject = product.toObject();
-  return _.pick(productObject, ['_id', 'name', 'description', 'category', 'rate', 'price', 'stock', 'imageUrl', 'key']);
+  return _.pick(productObject, ['_id', 'name', 'description', 'category', 'rate', 'price', 'stock', 'imageUrl', 'createdAt', 'key']);
 };
 
 
