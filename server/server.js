@@ -9,7 +9,7 @@ const bodyParser = require('body-parser');
 const { mongoose } = require('./db/mongoose');
 const { User } = require('./models/user');
 const { Product } = require('./models/product');
-
+const { Order } = require('./models/order');
 
 const { authenticate } = require('./middleware/authenticate');
 const { authenticateAsAdmin } = require('./middleware/authenticate-as-admin');
@@ -96,7 +96,7 @@ app.get(apiBase + 'users/:id', authenticateAsAdmin, (req, res) => {
             res.send(user);
         } else {
             res.status(400).send('Could not find the user.');
-        } 
+        }
     }, (err) => {
         res.status(500).send(err);
     });
@@ -115,7 +115,7 @@ app.post(apiBase + 'users/updateMyProfile', authenticate, (req, res) => {
             res.send(usr);
         } else {
             res.status(400).send('Could not find the user.');
-        } 
+        }
     });
 });
 
@@ -202,7 +202,7 @@ app.get(apiBase + 'products', (req, res) => {
 
 app.patch(apiBase + 'products', authenticateAsAdmin, (req, res) => {
     const id = req.body._id;
-    Product.findOneAndUpdate({_id: id}, {
+    Product.findOneAndUpdate({ _id: id }, {
         ...(req.body.name && { name: req.body.name }),
         ...(req.body.description && { description: req.body.description }),
         ...(req.body.imageUrl && { imageUrl: req.body.imageUrl }),
@@ -235,6 +235,71 @@ app.delete(apiBase + 'products/:id', authenticateAsAdmin, (req, res) => {
     });
 })
 
+///////////////////////////////////////////////////////////////////////
+
+// ---------------------- ORDER OPERATIONS ---------------------- //
+
+///////////////////////////////////////////////////////////////////////
+
+app.post(apiBase + 'orders', authenticate, async (req, res) => {
+    try {
+        const prod = await Product.findOne({
+            _id: req.body.productId
+        });
+
+        const order = new Order({
+            user: req.body.userId,
+            product: prod._id,
+            quantity: req.body.quantity,
+            orderPrice: req.body.quantity * prod.price
+        });
+
+        order.save().then((doc) => {
+            res.send(doc);
+        }, (e) => {
+            res.status(400).send(e);
+        });
+    } catch (err) {
+        res.send(500).send(err);
+    }
+});
+
+app.get(apiBase + 'orders/:id', authenticate, async (req, res) => {
+    try {
+        const user = req.user;
+        const order = await Order.findOne({
+            _id: req.params.id
+        }).populate('user').populate('product');
+        order.product.description = '';
+        if (user._id === order.user._id || user.isAdmin) {
+            res.send(order);
+        } else {
+            res.send(500).send('Opss.. Does not have permission.');
+        }
+
+
+    } catch (err) {
+        res.send(500).send(err);
+    }
+});
+
+app.get(apiBase + 'orders/user/:id', authenticate, async (req, res) => {
+    try {
+        const user = req.user;
+        if (user._id === req.params.id || user.isAdmin) {
+            const orderUser = await User.findOne({_id: req.params.id}).select('-isAdmin');
+            const orders = await Order.find({
+                user: req.params.id
+            }).populate('product', 'name price imageUrl').select(['-user']);
+            res.send({orders, orderUser});
+        } else {
+            res.send(500).send('Opss.. Does not have permission.');
+        }
+
+    } catch (err) {
+        res.send(500).send(err);
+    }
+});
 
 app.listen(port, () => {
     console.log(`Started up at port ${port}`);
