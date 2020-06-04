@@ -4,9 +4,9 @@ const _ = require('lodash');
 var Schema = mongoose.Schema;
 
 var OrderSchema = new Schema({
-  user : {
+  orderUser : {
     type: Schema.Types.ObjectId,
-    ref: 'User' 
+    ref: 'OrderUser' 
   },
   product : {
     type: Schema.Types.ObjectId,
@@ -22,7 +22,7 @@ var OrderSchema = new Schema({
   },
   createdAt: {
     type: Number,
-    default: Date.now()
+    default: Date.now
   }
 });
 
@@ -39,7 +39,7 @@ OrderSchema.set('toObject', {
 OrderSchema.methods.toJSON = function () {
   const product = this;
   const productObject = product.toObject();
-  return _.pick(productObject, ['_id', 'user', 'product', 'quantity', 'orderPrice', 'createdAt', 'key']);
+  return _.pick(productObject, ['_id', 'orderUser', 'product', 'quantity', 'orderPrice', 'createdAt', 'key']);
 };
 
 

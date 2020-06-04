@@ -10,6 +10,7 @@ const { mongoose } = require('./db/mongoose');
 const { User } = require('./models/user');
 const { Product } = require('./models/product');
 const { Order } = require('./models/order');
+const { OrderUser } = require('./models/orderuser');
 
 const { authenticate } = require('./middleware/authenticate');
 const { authenticateAsAdmin } = require('./middleware/authenticate-as-admin');
@@ -243,43 +244,30 @@ app.delete(apiBase + 'products/:id', authenticateAsAdmin, (req, res) => {
 
 app.post(apiBase + 'orders', authenticate, async (req, res) => {
     try {
-        const prod = await Product.findOne({
-            _id: req.body.productId
+        const userId = req.user._id;
+        const userOrder = new OrderUser({
+            user: userId
         });
 
-        const order = new Order({
-            user: req.body.userId,
-            product: prod._id,
-            quantity: req.body.quantity,
-            orderPrice: req.body.quantity * prod.price
-        });
+        const orderUser = await userOrder.save();
 
-        order.save().then((doc) => {
-            res.send(doc);
-        }, (e) => {
-            res.status(400).send(e);
-        });
-    } catch (err) {
-        res.send(500).send(err);
-    }
-});
+        const items = req.body.items;
 
-app.get(apiBase + 'orders/:id', authenticate, async (req, res) => {
-    try {
-        const user = req.user;
-        const order = await Order.findOne({
-            _id: req.params.id
-        }).populate('user').populate('product');
-        order.product.description = '';
-        if (user._id === order.user._id || user.isAdmin) {
-            res.send(order);
-        } else {
-            res.send(500).send('Opss.. Does not have permission.');
+        for (let item of items) {
+            const product = await Product.findOne({_id: item.product._id}).select('price');
+            const createdOrder = new Order({
+                orderUser: orderUser._id,
+                product: product._id,
+                quantity: item.quantity,
+                orderPrice: product.price * item.quantity
+            });
+            await createdOrder.save();
         }
 
+        res.send(orderUser);
 
     } catch (err) {
-        res.send(500).send(err);
+        res.status(500).send(err);
     }
 });
 
@@ -287,17 +275,21 @@ app.get(apiBase + 'orders/user/:id', authenticate, async (req, res) => {
     try {
         const user = req.user;
         if (user._id === req.params.id || user.isAdmin) {
-            const orderUser = await User.findOne({_id: req.params.id}).select('-isAdmin');
-            const orders = await Order.find({
-                user: req.params.id
-            }).populate('product', 'name price imageUrl').select(['-user']);
-            res.send({orders, orderUser});
+            const userOrders = await OrderUser.find({ user: req.params.id });
+            const allOrders = [];
+            for (let orderUser of userOrders) {
+                const orders = await Order.find({
+                    orderUser
+                }).populate('product', 'name price imageUrl');
+                allOrders.push({ orderUser, orders })
+            }
+            res.send({ allOrders });
         } else {
-            res.send(500).send('Opss.. Does not have permission.');
+            res.status(400).send('Opss.. Does not have permission.');
         }
 
     } catch (err) {
-        res.send(500).send(err);
+        res.status(500).send(err);
     }
 });
 

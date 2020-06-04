@@ -25,7 +25,7 @@ var ProductSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Number,
-    default: Date.now()
+    default: Date.now
   },
   description: {
     type: String
