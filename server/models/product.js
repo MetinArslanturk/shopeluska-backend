@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const _ = require('lodash');
 
 
-var ProductSchema = new mongoose.Schema({
+const ProductSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true

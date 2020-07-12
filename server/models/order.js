@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 const _ = require('lodash');
 
-var Schema = mongoose.Schema;
+const Schema = mongoose.Schema;
 
-var OrderSchema = new Schema({
+const OrderSchema = new Schema({
   orderUser : {
     type: Schema.Types.ObjectId,
     ref: 'OrderUser' 

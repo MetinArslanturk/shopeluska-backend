@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 const bcrypt = require('bcryptjs');
 
-var UserSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
@@ -47,17 +47,17 @@ UserSchema.set('toObject', {
 });
 
 UserSchema.methods.toJSON = function () {
-  var user = this;
-  var userObject = user.toObject();
+  const user = this;
+  const userObject = user.toObject();
   return _.pick(userObject, ['_id', 'name', 'email', 'isAdmin', 'key']);
 };
 
 
 
 UserSchema.methods.generateAuthToken = function () {
-  var user = this;
-  var access = 'auth';
-  var token = jwt.sign({_id: user._id.toHexString(), access}, '256@mhKjNqq65z!Td,').toString();
+  const user = this;
+  const access = 'auth';
+  const token = jwt.sign({_id: user._id.toHexString(), access}, '256@mhKjNqq65z!Td,').toString();
 
   user.token = token;
 
@@ -68,7 +68,7 @@ UserSchema.methods.generateAuthToken = function () {
 
 
 UserSchema.statics.findByCredentials = function (email, password) {
-  var User = this;
+  const User = this;
 
   return User.findOne({email}).then((user) => {
     if (!user) {
@@ -89,8 +89,8 @@ UserSchema.statics.findByCredentials = function (email, password) {
 };
 
 UserSchema.statics.findByToken = function (token) {
-  var User = this;
-  var decoded;
+  const User = this;
+  let decoded;
 
   try {
     decoded = jwt.verify(token, '256@mhKjNqq65z!Td,');
@@ -105,7 +105,7 @@ UserSchema.statics.findByToken = function (token) {
 };
 
 UserSchema.pre('save', function (next) {
-  var user = this;
+  const user = this;
 
   if (user.isModified('password')) {
     bcrypt.genSalt(10, (err, salt) => {
@@ -133,6 +133,6 @@ UserSchema.pre('findOneAndUpdate', function (next) {
   }
 });
 
-var User = mongoose.model('User', UserSchema);
+const User = mongoose.model('User', UserSchema);
 
 module.exports = {User}
