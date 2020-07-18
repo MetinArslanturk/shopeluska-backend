@@ -317,4 +317,7 @@ app.get(apiBase + 'bereadyfortests', async (req, res) => {
 
 app.listen(port, () => {
     console.log(`Started up at port ${port}`);
+    if (env === 'test') {
+        makeReadyTestData();
+    }
 });
