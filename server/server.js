@@ -233,7 +233,7 @@ app.delete(apiBase + 'products/:id', authenticateAsAdmin, (req, res) => {
         if (doc) {
             res.send();
         } else {
-            res.status(400).send('Could not find product');
+            res.status(404).send('Could not find product');
         }
     }, (err) => {
         res.status(500).send(err);
@@ -290,23 +290,6 @@ app.get(apiBase + 'orders/user/:id', authenticate, async (req, res) => {
             res.send({ allOrders });
         } else {
             res.status(400).send('Opss.. Does not have permission.');
-        }
-
-    } catch (err) {
-        res.status(500).send(err);
-    }
-});
-
-
-
-app.get(apiBase + 'bereadyfortests', async (req, res) => {
-    try {
-        if (env === 'test') {
-            await makeReadyTestData();
-            console.log('Test db data ready for test.')
-            res.send('Test db data ready for test.');
-        } else {
-            res.status(400).send('This can work only with test environment!'); 
         }
 
     } catch (err) {
